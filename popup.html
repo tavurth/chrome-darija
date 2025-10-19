@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        width: 300px;
+        padding: 20px;
+        font-family: system-ui;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        margin: 8px 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        background: #0095f6;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+      }
+      button:hover {
+        background: #0084e6;
+      }
+      .status {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Darija Translator</h3>
+    <label>OpenRouter API Key:</label>
+    <input type="password" id="tokenInput" placeholder="sk-or-v1-..." />
+    <button id="saveButton">Save Token</button>
+    <div class="status" id="status"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
