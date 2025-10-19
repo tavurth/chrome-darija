@@ -35,6 +35,8 @@ const callTranslationAPI = async (text, token, direction = "to-english") => {
             headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
+                "HTTP-Referer": "https://instagram.com",
+                "X-Title": "Darija Translator",
             },
             body: JSON.stringify({
                 model: "google/gemini-2.5-flash",
@@ -132,7 +134,7 @@ const handleMessageClick = async (event) => {
 const addClickListener = () => {
     const container = document.querySelector(SELECTORS.dmContainer);
     if (!container) {
-        console.log("DM container not found");
+        console.error("DM container not found");
         return;
     }
 
@@ -142,28 +144,14 @@ const addClickListener = () => {
 };
 
 const observeNewMessages = () => {
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (
-                mutation.type === "childList" &&
-                mutation.addedNodes.length > 0
-            ) {
-                // Check if new messages were added
-                const hasNewMessages = Array.from(mutation.addedNodes).some(
-                    (node) =>
-                        node.nodeType === Node.ELEMENT_NODE &&
-                        (node.matches?.(SELECTORS.messageElement) ||
-                            node.querySelector?.(SELECTORS.messageElement)),
-                );
+    let debounceTimer;
 
-                if (hasNewMessages) {
-                    console.log(
-                        "New messages detected, re-adding click listeners",
-                    );
-                    addClickListener();
-                }
-            }
-        });
+    const observer = new MutationObserver((mutations) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            // Re-attach listeners after any DOM changes
+            addClickListener();
+        }, 100);
     });
 
     const container = document.querySelector(SELECTORS.dmContainer);
@@ -171,13 +159,14 @@ const observeNewMessages = () => {
         observer.observe(container, {
             childList: true,
             subtree: true,
+            attributes: false,
         });
     }
 };
 
 const initTranslator = () => {
     if (!isDMPage()) {
-        console.log("Not on DM page");
+        console.error("Not on instagram DM page");
         return;
     }
 
