@@ -10,13 +10,24 @@ const findMessageElement = (target) => {
     return target.closest(SELECTORS.messageElement);
 };
 
-const getStoredToken = async () => {
-    const { openrouterToken } =
-        await chrome.storage.local.get("openrouterToken");
-    return openrouterToken;
+const getStoredSettings = async () => {
+    const { openrouterToken, translationDirection } =
+        await chrome.storage.local.get([
+            "openrouterToken",
+            "translationDirection",
+        ]);
+    return {
+        token: openrouterToken,
+        direction: translationDirection || "to-english",
+    };
 };
 
-const callTranslationAPI = async (text, token) => {
+const callTranslationAPI = async (text, token, direction = "to-english") => {
+    const prompt =
+        direction === "to-darija"
+            ? `Translate to latin Darija (Moroccan Arabic without arabic script): "${text}"`
+            : `Translate to English: "${text}"`;
+
     const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
@@ -30,7 +41,7 @@ const callTranslationAPI = async (text, token) => {
                 messages: [
                     {
                         role: "user",
-                        content: `Translate to English: "${text}"`,
+                        content: prompt,
                     },
                 ],
                 max_tokens: 50,
@@ -45,7 +56,7 @@ const callTranslationAPI = async (text, token) => {
                                 translation: {
                                     type: "string",
                                     description:
-                                        "The English translation of the input text",
+                                        "The translation of the input text",
                                 },
                             },
                             required: ["translation"],
@@ -73,7 +84,7 @@ const replaceMessageText = (textElement, originalText, translation) => {
 };
 
 const translateMessage = async (textElement, originalText) => {
-    const token = await getStoredToken();
+    const { token, direction } = await getStoredSettings();
     if (!token) {
         console.error("Darija Translator: No API token configured");
         return;
@@ -82,7 +93,11 @@ const translateMessage = async (textElement, originalText) => {
     textElement.textContent = "...";
 
     try {
-        const translation = await callTranslationAPI(originalText, token);
+        const translation = await callTranslationAPI(
+            originalText,
+            token,
+            direction,
+        );
         if (translation) {
             replaceMessageText(textElement, originalText, translation);
         } else {

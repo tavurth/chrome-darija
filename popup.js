@@ -1,14 +1,28 @@
-const loadSavedToken = async () => {
-    const { openrouterToken } =
-        await chrome.storage.local.get("openrouterToken");
+const loadSavedSettings = async () => {
+    const { openrouterToken, translationDirection } =
+        await chrome.storage.local.get([
+            "openrouterToken",
+            "translationDirection",
+        ]);
+
     if (openrouterToken) {
         document.getElementById("tokenInput").value = openrouterToken;
-        updateStatus("Token loaded");
+    }
+
+    if (translationDirection) {
+        document.getElementById("translationDirection").value =
+            translationDirection;
+    }
+
+    if (openrouterToken) {
+        updateStatus("Settings loaded");
     }
 };
 
-const saveToken = async () => {
+const saveSettings = async () => {
     const token = document.getElementById("tokenInput").value.trim();
+    const direction = document.getElementById("translationDirection").value;
+
     if (!token) {
         updateStatus("Please enter a token", "error");
         return;
@@ -19,8 +33,11 @@ const saveToken = async () => {
         return;
     }
 
-    await chrome.storage.local.set({ openrouterToken: token });
-    updateStatus("Token saved successfully!");
+    await chrome.storage.local.set({
+        openrouterToken: token,
+        translationDirection: direction,
+    });
+    updateStatus("Settings saved successfully!");
 };
 
 const updateStatus = (message, type = "success") => {
@@ -29,5 +46,5 @@ const updateStatus = (message, type = "success") => {
     status.style.color = type === "error" ? "#e74c3c" : "#27ae60";
 };
 
-document.getElementById("saveButton").addEventListener("click", saveToken);
-document.addEventListener("DOMContentLoaded", loadSavedToken);
+document.getElementById("saveButton").addEventListener("click", saveSettings);
+document.addEventListener("DOMContentLoaded", loadSavedSettings);

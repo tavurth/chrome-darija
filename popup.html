@@ -7,7 +7,8 @@
         padding: 20px;
         font-family: system-ui;
       }
-      input {
+      input,
+      select {
         width: 100%;
         padding: 8px;
         margin: 8px 0;
@@ -31,13 +32,26 @@
         font-size: 12px;
         color: #666;
       }
+      label {
+        display: block;
+        margin-top: 10px;
+        font-weight: 500;
+      }
     </style>
   </head>
   <body>
     <h3>Darija Translator</h3>
+
     <label>OpenRouter API Key:</label>
     <input type="password" id="tokenInput" placeholder="sk-or-v1-..." />
-    <button id="saveButton">Save Token</button>
+
+    <label>Translation Direction:</label>
+    <select id="translationDirection">
+      <option value="to-english">To English</option>
+      <option value="to-darija">To Darija</option>
+    </select>
+
+    <button id="saveButton">Save Settings</button>
     <div class="status" id="status"></div>
 
     <script src="popup.js"></script>
