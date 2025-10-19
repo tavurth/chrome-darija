@@ -164,6 +164,63 @@ const observeNewMessages = () => {
     }
 };
 
+const replaceSelectedText = (translation) => {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        // Clear the selection first
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+
+        // Use insertText which triggers input events
+        document.execCommand("insertText", false, translation);
+
+        // Alternative: trigger input event manually
+        const target =
+            range.commonAncestorContainer.parentElement ||
+            range.commonAncestorContainer;
+        if (target && target.dispatchEvent) {
+            target.dispatchEvent(new Event("input", { bubbles: true }));
+            target.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+    }
+};
+
+const handleSelectionTranslation = async (selectedText) => {
+    const { token, direction } = await getStoredSettings();
+    if (!token) {
+        console.error("Darija Translator: No API token configured");
+        return;
+    }
+
+    const oppositeDirection =
+        direction === "to-english" ? "to-darija" : "to-english";
+
+    try {
+        const translation = await callTranslationAPI(
+            selectedText,
+            token,
+            oppositeDirection,
+        );
+        if (translation) {
+            replaceSelectedText(translation);
+        }
+    } catch (error) {
+        console.error("Translation failed:", error);
+    }
+};
+
+// Keyboard shortcut handler
+document.addEventListener("keydown", (event) => {
+    if (event.ctrlKey && event.shiftKey && event.key === "T") {
+        event.preventDefault();
+
+        const selectedText = window.getSelection().toString().trim();
+        if (selectedText) {
+            handleSelectionTranslation(selectedText);
+        }
+    }
+});
+
 const initTranslator = () => {
     if (!isDMPage()) {
         console.error("Not on instagram DM page");

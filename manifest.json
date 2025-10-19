@@ -3,13 +3,12 @@
   "name": "Darija Translator",
   "version": "1.0",
   "description": "Click-to-translate Darija messages in Instagram DMs",
-  "permissions": ["storage", "scripting"],
+  "permissions": ["storage"],
   "host_permissions": ["*://www.instagram.com/*", "https://openrouter.ai/*"],
   "content_scripts": [{
     "matches": ["*://www.instagram.com/direct/*"],
     "js": ["content.js"],
-    "run_at": "document_idle",
-    "world": "ISOLATED"
+    "run_at": "document_idle"
   }],
   "action": {
     "default_popup": "popup.html",
