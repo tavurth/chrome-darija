@@ -37,6 +37,16 @@
         margin-top: 10px;
         font-weight: 500;
       }
+      .api-link {
+        font-size: 12px;
+        color: #0095f6;
+        text-decoration: none;
+        margin-top: 4px;
+        display: inline-block;
+      }
+      .api-link:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -44,6 +54,12 @@
 
     <label>OpenRouter API Key:</label>
     <input type="password" id="tokenInput" placeholder="sk-or-v1-..." />
+    <a
+      href="https://openrouter.ai/settings/keys"
+      target="_blank"
+      class="api-link"
+      >Get API key &rarr;</a
+    >
 
     <label>Translation Direction:</label>
     <select id="translationDirection">
