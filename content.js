@@ -25,8 +25,8 @@ const getStoredSettings = async () => {
 const callTranslationAPI = async (text, token, direction = "to-english") => {
     const prompt =
         direction === "to-darija"
-            ? `Translate to latin Darija (Moroccan Arabic without arabic script): "${text}"`
-            : `Translate to English: "${text}"`;
+            ? `Translate to latin Darija (Moroccan Rabat Arabic without arabic script): "${text}"`
+            : `Translate to English this likely French or Darja text: "${text}"`;
 
     const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
