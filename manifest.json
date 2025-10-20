@@ -2,16 +2,33 @@
   "manifest_version": 3,
   "name": "Darija Translator",
   "version": "1.0",
-  "description": "Click-to-translate Darija messages in Instagram DMs",
+  "description": "Click-to-translate Darija messages in Instagram DMs, Facebook Messenger, and Messenger",
   "permissions": ["storage"],
-  "host_permissions": ["*://www.instagram.com/*", "https://openrouter.ai/*"],
+  "host_permissions": [
+    "*://instagram.com/*",
+    "*://www.instagram.com/*", 
+    "*://facebook.com/*",
+    "*://www.facebook.com/*",
+    "*://web.facebook.com/*",
+    "*://m.facebook.com/*",
+    "*://messenger.com/*",
+    "*://www.messenger.com/*",
+    "*://m.messenger.com/*",
+    "https://openrouter.ai/*"
+  ],
   "content_scripts": [{
-    "matches": ["*://www.instagram.com/direct/*"],
+    "matches": [
+      "*://instagram.com/direct/*",
+      "*://www.instagram.com/direct/*",
+      "*://facebook.com/messages/*",
+      "*://www.facebook.com/messages/*",
+      "*://web.facebook.com/messages/*",
+      "*://m.facebook.com/messages/*",
+      "*://messenger.com/*",
+      "*://www.messenger.com/*",
+      "*://m.messenger.com/*"
+    ],
     "js": ["content.js"],
     "run_at": "document_idle"
-  }],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "Configure Darija Translator"
-  }
+  }]
 }
