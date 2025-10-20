@@ -16,10 +16,13 @@ const CONFIG = {
         },
     },
     prompts: {
-        toDarija: (text) =>
-            `Translate to latin Darija (Moroccan Rabat Arabic without arabic script): "${text}". YOU MUST Return only: <translation>your translation here</translation> DO NOT OMIT TAGS`,
-        toEnglish: (text) =>
-            `Translate to English this likely French or Darja text: "${text}". YOU MUST Return only: <translation>your translation here</translation> DO NOT OMIT TAGS`,
+        base: (text, instruction) =>
+            `${instruction}: "${text}". YOU MUST Return only: <translation>your translation here</translation> DO NOT OMIT TAGS`,
+        instructions: {
+            toDarija:
+                "Translate to latin Darija (Moroccan Rabat Arabic without arabic script, use numbers for Arabic letters like 3=ع, 7=ح, 9=ق, 2=ء, 5=خ, 8=غ)",
+            toEnglish: "Translate to English this likely French or Darja text",
+        },
     },
     storage: {
         keys: ["openrouterToken", "translationDirection", "selectedModel"],
@@ -46,16 +49,37 @@ const getStoredSettings = async () => {
     };
 };
 
+const showLoadingAnimation = (element) => {
+    let dotCount = 0;
+    const animation = setInterval(() => {
+        dotCount = (dotCount % 3) + 1;
+        element.textContent = ".".repeat(dotCount);
+    }, 500);
+
+    element.dataset.loadingInterval = animation;
+    return animation;
+};
+
+const clearLoadingAnimation = (element) => {
+    const intervalId = element.dataset.loadingInterval;
+    if (intervalId) {
+        clearInterval(intervalId);
+        delete element.dataset.loadingInterval;
+    }
+};
+
 const callTranslationAPI = async (
     text,
     token,
     direction = "to-english",
     model,
 ) => {
-    const prompt =
+    const instruction =
         direction === "to-darija"
-            ? CONFIG.prompts.toDarija(text)
-            : CONFIG.prompts.toEnglish(text);
+            ? CONFIG.prompts.instructions.toDarija
+            : CONFIG.prompts.instructions.toEnglish;
+
+    const prompt = CONFIG.prompts.base(text, instruction);
 
     const response = await fetch(CONFIG.api.endpoint, {
         method: "POST",
@@ -101,7 +125,7 @@ const translateMessage = async (textElement, originalText) => {
         return;
     }
 
-    textElement.textContent = "...";
+    const loadingInterval = showLoadingAnimation(textElement);
 
     try {
         const translation = await callTranslationAPI(
@@ -110,12 +134,15 @@ const translateMessage = async (textElement, originalText) => {
             direction,
             model,
         );
+        clearLoadingAnimation(textElement);
+
         if (translation) {
             replaceMessageText(textElement, originalText, translation);
         } else {
             textElement.textContent = originalText;
         }
     } catch (error) {
+        clearLoadingAnimation(textElement);
         console.error("Translation failed:", error);
         textElement.textContent = originalText;
     }
