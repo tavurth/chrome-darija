@@ -102,7 +102,7 @@ const callTranslationAPI = async (
 
     // Always strip translation tags and clean up
     return content
-        .replace(/<\/?translation>/g, "")
+        .replace(/<?\/?\s*translation\s*>?/gi, "")
         .replace(/^\*\*.*?\*\*|\*\*.*?\*\*$|^#+\s*/g, "")
         .trim();
 };
