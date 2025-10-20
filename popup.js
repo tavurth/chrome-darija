@@ -1,27 +1,28 @@
 const loadSavedSettings = async () => {
-    const { openrouterToken, translationDirection } =
+    const { openrouterToken, translationDirection, selectedModel } =
         await chrome.storage.local.get([
             "openrouterToken",
             "translationDirection",
+            "selectedModel",
         ]);
 
     if (openrouterToken) {
         document.getElementById("tokenInput").value = openrouterToken;
     }
 
-    if (translationDirection) {
-        document.getElementById("translationDirection").value =
-            translationDirection;
-    }
+    document.getElementById("translationDirection").value =
+        translationDirection || "to-english";
 
-    if (openrouterToken) {
-        updateStatus("Settings loaded");
-    }
+    document.getElementById("modelSelect").value =
+        selectedModel || "deepseek/deepseek-chat-v3.1:free";
+
+    if (openrouterToken) updateStatus("Settings loaded");
 };
 
 const saveSettings = async () => {
     const token = document.getElementById("tokenInput").value.trim();
     const direction = document.getElementById("translationDirection").value;
+    const model = document.getElementById("modelSelect").value;
 
     if (!token) {
         updateStatus("Please enter a token", "error");
@@ -36,6 +37,7 @@ const saveSettings = async () => {
     await chrome.storage.local.set({
         openrouterToken: token,
         translationDirection: direction,
+        selectedModel: model,
     });
     updateStatus("Settings saved successfully!");
 };

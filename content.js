@@ -1,80 +1,89 @@
-const SELECTORS = {
-    dmContainer: '[role="main"]',
-    messageText: 'div[dir="auto"]',
-    messageElement: '[role="button"][aria-label*="tap"]',
+// Configuration
+const CONFIG = {
+    selectors: {
+        dmContainer: '[role="main"]',
+        messageText: 'div[dir="auto"]',
+        messageElement: '[role="button"][aria-label*="tap"]',
+    },
+    api: {
+        endpoint: "https://openrouter.ai/api/v1/chat/completions",
+        defaultModel: "google/gemini-2.5-flash",
+        maxTokens: 50,
+        headers: {
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://instagram.com",
+            "X-Title": "Darija Translator",
+        },
+    },
+    prompts: {
+        toDarija: (text) =>
+            `Translate to latin Darija (Moroccan Rabat Arabic without arabic script): "${text}". YOU MUST Return only: <translation>your translation here</translation> DO NOT OMIT TAGS`,
+        toEnglish: (text) =>
+            `Translate to English this likely French or Darja text: "${text}". YOU MUST Return only: <translation>your translation here</translation> DO NOT OMIT TAGS`,
+    },
+    storage: {
+        keys: ["openrouterToken", "translationDirection", "selectedModel"],
+        defaults: {
+            translationDirection: "to-english",
+            selectedModel: "google/gemini-2.5-flash",
+        },
+    },
+    debounceMs: 100,
 };
 
-const isDMPage = () => window.location.pathname.includes("/direct/");
-
 const findMessageElement = (target) => {
-    return target.closest(SELECTORS.messageElement);
+    return target.closest(CONFIG.selectors.messageElement);
 };
 
 const getStoredSettings = async () => {
-    const { openrouterToken, translationDirection } =
-        await chrome.storage.local.get([
-            "openrouterToken",
-            "translationDirection",
-        ]);
+    const stored = await chrome.storage.local.get(CONFIG.storage.keys);
     return {
-        token: openrouterToken,
-        direction: translationDirection || "to-english",
+        token: stored.openrouterToken,
+        direction:
+            stored.translationDirection ||
+            CONFIG.storage.defaults.translationDirection,
+        model: stored.selectedModel || CONFIG.storage.defaults.selectedModel,
     };
 };
 
-const callTranslationAPI = async (text, token, direction = "to-english") => {
+const callTranslationAPI = async (
+    text,
+    token,
+    direction = "to-english",
+    model,
+) => {
     const prompt =
         direction === "to-darija"
-            ? `Translate to latin Darija (Moroccan Rabat Arabic without arabic script): "${text}"`
-            : `Translate to English this likely French or Darja text: "${text}"`;
+            ? CONFIG.prompts.toDarija(text)
+            : CONFIG.prompts.toEnglish(text);
 
-    const response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://instagram.com",
-                "X-Title": "Darija Translator",
-            },
-            body: JSON.stringify({
-                model: "google/gemini-2.5-flash",
-                messages: [
-                    {
-                        role: "user",
-                        content: prompt,
-                    },
-                ],
-                max_tokens: 50,
-                response_format: {
-                    type: "json_schema",
-                    json_schema: {
-                        name: "translation_result",
-                        strict: true,
-                        schema: {
-                            type: "object",
-                            properties: {
-                                translation: {
-                                    type: "string",
-                                    description:
-                                        "The translation of the input text",
-                                },
-                            },
-                            required: ["translation"],
-                            additionalProperties: false,
-                        },
-                    },
-                },
-            }),
+    const response = await fetch(CONFIG.api.endpoint, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            ...CONFIG.api.headers,
         },
-    );
+        body: JSON.stringify({
+            model: model || CONFIG.api.defaultModel,
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: CONFIG.api.maxTokens,
+        }),
+    });
 
     if (!response.ok) throw new Error(`API error: ${response.status}`);
 
     const data = await response.json();
-    const result = JSON.parse(data.choices?.[0]?.message?.content || "{}");
-    return result.translation;
+    const content = data.choices?.[0]?.message?.content || "";
+
+    // Extract content between <translation> tags
+    const match = content.match(/<translation>(.*?)<\/translation>/s);
+    console.log(content);
+    if (match) {
+        return match[1].trim();
+    }
+
+    // Fallback: return cleaned content
+    return content.replace(/^\*\*.*?\*\*|\*\*.*?\*\*$|^#+\s*/g, "").trim();
 };
 
 const replaceMessageText = (textElement, originalText, translation) => {
@@ -86,7 +95,7 @@ const replaceMessageText = (textElement, originalText, translation) => {
 };
 
 const translateMessage = async (textElement, originalText) => {
-    const { token, direction } = await getStoredSettings();
+    const { token, direction, model } = await getStoredSettings();
     if (!token) {
         console.error("Darija Translator: No API token configured");
         return;
@@ -99,6 +108,7 @@ const translateMessage = async (textElement, originalText) => {
             originalText,
             token,
             direction,
+            model,
         );
         if (translation) {
             replaceMessageText(textElement, originalText, translation);
@@ -115,10 +125,11 @@ const handleMessageClick = async (event) => {
     const messageElement = findMessageElement(event.target);
     if (!messageElement) return;
 
-    const textElement = messageElement.querySelector(SELECTORS.messageText);
+    const textElement = messageElement.querySelector(
+        CONFIG.selectors.messageText,
+    );
     if (!textElement) return;
 
-    // Toggle back to original if already translated
     if (textElement.dataset.translated === "true") {
         textElement.textContent = textElement.dataset.originalText;
         textElement.dataset.translated = "false";
@@ -132,13 +143,12 @@ const handleMessageClick = async (event) => {
 };
 
 const addClickListener = () => {
-    const container = document.querySelector(SELECTORS.dmContainer);
+    const container = document.querySelector(CONFIG.selectors.dmContainer);
     if (!container) {
         console.error("DM container not found");
         return;
     }
 
-    // Remove existing listener to avoid duplicates
     container.removeEventListener("click", handleMessageClick);
     container.addEventListener("click", handleMessageClick);
 };
@@ -149,12 +159,11 @@ const observeNewMessages = () => {
     const observer = new MutationObserver((mutations) => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            // Re-attach listeners after any DOM changes
             addClickListener();
-        }, 100);
+        }, CONFIG.debounceMs);
     });
 
-    const container = document.querySelector(SELECTORS.dmContainer);
+    const container = document.querySelector(CONFIG.selectors.dmContainer);
     if (container) {
         observer.observe(container, {
             childList: true,
@@ -167,14 +176,11 @@ const observeNewMessages = () => {
 const replaceSelectedText = (translation) => {
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
-        // Clear the selection first
         const range = selection.getRangeAt(0);
         range.deleteContents();
 
-        // Use insertText which triggers input events
         document.execCommand("insertText", false, translation);
 
-        // Alternative: trigger input event manually
         const target =
             range.commonAncestorContainer.parentElement ||
             range.commonAncestorContainer;
@@ -186,7 +192,7 @@ const replaceSelectedText = (translation) => {
 };
 
 const handleSelectionTranslation = async (selectedText) => {
-    const { token, direction } = await getStoredSettings();
+    const { token, direction, model } = await getStoredSettings();
     if (!token) {
         console.error("Darija Translator: No API token configured");
         return;
@@ -200,6 +206,7 @@ const handleSelectionTranslation = async (selectedText) => {
             selectedText,
             token,
             oppositeDirection,
+            model,
         );
         if (translation) {
             replaceSelectedText(translation);
@@ -209,7 +216,6 @@ const handleSelectionTranslation = async (selectedText) => {
     }
 };
 
-// Keyboard shortcut handler
 document.addEventListener("keydown", (event) => {
     if (event.ctrlKey && event.shiftKey && event.key === "T") {
         event.preventDefault();
@@ -222,17 +228,11 @@ document.addEventListener("keydown", (event) => {
 });
 
 const initTranslator = () => {
-    if (!isDMPage()) {
-        console.error("Not on instagram DM page");
-        return;
-    }
-
     console.log("Darija Translator initialized");
     addClickListener();
     observeNewMessages();
 };
 
-// Initialize
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initTranslator);
 } else {

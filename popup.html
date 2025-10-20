@@ -47,6 +47,11 @@
       .api-link:hover {
         text-decoration: underline;
       }
+      .free-badge {
+        color: #27ae60;
+        font-size: 11px;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body>
@@ -60,6 +65,14 @@
       class="api-link"
       >Get API key &rarr;</a
     >
+
+    <label>AI Model:</label>
+    <select id="modelSelect">
+      <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (Fast)</option>
+      <option value="anthropic/claude-sonnet-4.5">
+        Claude Sonnet 4.5 (Expensive)
+      </option>
+    </select>
 
     <label>Translation Direction:</label>
     <select id="translationDirection">
