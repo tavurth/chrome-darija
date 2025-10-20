@@ -28,7 +28,14 @@
       "*://www.messenger.com/*",
       "*://m.messenger.com/*"
     ],
-    "js": ["content.js"],
+    "js": [
+      "config.js",
+      "selectors.js", 
+      "api.js",
+      "translation.js",
+      "ui.js",
+      "main.js"
+    ],
     "run_at": "document_idle"
   }]
 }
