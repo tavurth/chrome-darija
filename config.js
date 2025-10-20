@@ -32,11 +32,21 @@ const CONFIG = {
     },
     prompts: {
         base: (text, instruction) =>
-            `${instruction}: "${text}". YOU MUST Return only: <translation>your translation here</translation> DO NOT OMIT TAGS`,
+            `${instruction}: "${text}". 
+        
+Context: Darija uses numbers for Arabic letters (3=ع, 7=ح, 9=ق, 2=ء, 5=خ, 8=غ, 6=ط, 4=ذ). 
+Common patterns: "Hhhhhh" = laughter/LOL, repeated letters for emphasis, French/Arabic/English mixing is normal.
+Be natural and conversational.
+
+Keep newlines as the original text had.
+
+YOU MUST Return only: <translation>your translation here</translation> DO NOT OMIT TAGS`,
+
         instructions: {
             toDarija:
-                "Translate to latin Darija (Moroccan Rabat Arabic without arabic script, use numbers for Arabic letters like 3=ع, 7=ح, 9=ق, 2=ء, 5=خ, 8=غ)",
-            toEnglish: "Translate to English this likely French or Darja text",
+                "Translate to latin Darija (Moroccan Arabic without arabic script)",
+            toEnglish:
+                "Translate this Darija/French mixed text to natural English",
         },
     },
     storage: {
