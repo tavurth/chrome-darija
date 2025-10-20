@@ -98,16 +98,13 @@ const callTranslationAPI = async (
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
-
-    // Extract content between <translation> tags
-    const match = content.match(/<translation>(.*?)<\/translation>/s);
     console.log(content);
-    if (match) {
-        return match[1].trim();
-    }
 
-    // Fallback: return cleaned content
-    return content.replace(/^\*\*.*?\*\*|\*\*.*?\*\*$|^#+\s*/g, "").trim();
+    // Always strip translation tags and clean up
+    return content
+        .replace(/<\/?translation>/g, "")
+        .replace(/^\*\*.*?\*\*|\*\*.*?\*\*$|^#+\s*/g, "")
+        .trim();
 };
 
 const replaceMessageText = (textElement, originalText, translation) => {
