@@ -23,26 +23,40 @@ const findMessageElement = (target) => {
   return null
 }
 
+const isWhiteText = (element) => {
+  if (!element) return false
+
+  const style = window.getComputedStyle(element)
+  const color = style.color
+
+  // Parse rgb(r, g, b) format
+  const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+  if (!rgbMatch) return false
+
+  const [, r, g, b] = rgbMatch.map(Number)
+  return r > 240 && g > 240 && b > 240
+}
+
 const findTextElement = (messageElement) => {
-  // Look for text by attributes, not classes
   const directionalText = messageElement.querySelector('[dir="ltr"], [dir="auto"]')
-  if (directionalText?.textContent?.trim()) {
-    // If it has substantial text, return it; otherwise look for child with text
+  if (directionalText?.textContent?.trim() && isWhiteText(directionalText)) {
     const text = directionalText.textContent.trim()
     if (text.length > 10) return directionalText
 
     const textChild = directionalText.querySelector('span, div')
-    if (textChild?.textContent?.trim()) return textChild
+    if (textChild?.textContent?.trim() && isWhiteText(textChild)) return textChild
   }
 
-  // Find the deepest element with meaningful text
   const walker = document.createTreeWalker(
     messageElement,
     NodeFilter.SHOW_TEXT,
-    (node) =>
-      node.textContent.trim().length > 5
+    (node) => {
+      const hasText = node.textContent.trim().length > 5
+      const parentIsWhite = isWhiteText(node.parentElement)
+      return hasText && parentIsWhite && !isTimeOrMetadata(node.textContent)
         ? NodeFilter.FILTER_ACCEPT
-        : NodeFilter.FILTER_SKIP,
+        : NodeFilter.FILTER_SKIP
+    },
   )
 
   let longestText = null
@@ -50,7 +64,7 @@ const findTextElement = (messageElement) => {
   let node
 
   while ((node = walker.nextNode())) {
-    if (node.textContent.length > maxLength && !isTimeOrMetadata(node.textContent)) {
+    if (node.textContent.length > maxLength) {
       maxLength = node.textContent.length
       longestText = node.parentElement
     }
