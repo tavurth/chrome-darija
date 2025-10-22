@@ -20,6 +20,7 @@ Be natural and conversational.
 
 Keep newlines as the original text had.
 Only reply with a single version of the translation.
+Never end with a full stop at the last line.
 
 YOU MUST Return only: <translation>your translation here</translation> DO NOT OMIT TAGS`,
 
