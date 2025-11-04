@@ -29,12 +29,24 @@ const isWhiteText = (element) => {
   const style = window.getComputedStyle(element)
   const color = style.color
 
-  // Parse rgb(r, g, b) format
   const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
   if (!rgbMatch) return false
 
   const [, r, g, b] = rgbMatch.map(Number)
   return r > 240 && g > 240 && b > 240
+}
+
+const CLASS_EXCLUDES = ['html-span', 'metadata', 'timestamp', 'status', 'system']
+
+const hasExcludedClass = (element) => {
+  if (!element) return false
+  const className = element.className || ''
+  return CLASS_EXCLUDES.some((exclude) => className.includes(exclude))
+}
+
+const isValidMessageText = (element) => {
+  if (hasExcludedClass(element)) return false
+  return isWhiteText(element)
 }
 
 const findTextElement = (messageElement) => {
