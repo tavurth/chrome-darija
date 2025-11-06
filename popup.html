@@ -59,19 +59,15 @@
 
     <label>OpenRouter API Key:</label>
     <input type="password" id="tokenInput" placeholder="sk-or-v1-..." />
-    <a
-      href="https://openrouter.ai/settings/keys"
-      target="_blank"
-      class="api-link"
+    <a href="https://openrouter.ai/settings/keys" target="_blank" class="api-link"
       >Get API key &rarr;</a
     >
 
     <label>AI Model:</label>
     <select id="modelSelect">
+      <option value="openrouter/polaris-alpha">Polaris Alpha (Free)</option>
       <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (Fast)</option>
-      <option value="anthropic/claude-sonnet-4.5">
-        Claude Sonnet 4.5 (Expensive)
-      </option>
+      <option value="anthropic/claude-sonnet-4.5">Claude Sonnet 4.5 (Expensive)</option>
     </select>
 
     <label>Translation Direction:</label>

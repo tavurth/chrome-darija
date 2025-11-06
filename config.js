@@ -2,7 +2,7 @@
 const CONFIG = {
   api: {
     endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-    defaultModel: 'google/gemini-2.5-flash',
+    defaultModel: 'openrouter/polaris-alpha',
     maxTokens: 50,
     headers: {
       'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ YOU MUST Return only: <translation>your translation here</translation> DO NOT OM
     keys: ['openrouterToken', 'translationDirection', 'selectedModel'],
     defaults: {
       translationDirection: 'to-english',
-      selectedModel: 'google/gemini-2.5-flash',
+      selectedModel: 'openrouter/polaris-alpha',
     },
   },
   debounceMs: 100,
